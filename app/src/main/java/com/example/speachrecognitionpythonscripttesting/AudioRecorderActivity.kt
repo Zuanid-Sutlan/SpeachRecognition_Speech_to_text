@@ -1,6 +1,7 @@
 package com.example.speachrecognitionpythonscripttesting
 
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.util.Log
@@ -22,6 +23,10 @@ class AudioRecorderActivity : AppCompatActivity() {
     }
 
     private var mediaRecorder: MediaRecorder? = null
+
+    private var mediaPlayer: MediaPlayer? = null
+
+
     private var isRecording = false
 
     private lateinit var textView: TextView
@@ -38,17 +43,27 @@ class AudioRecorderActivity : AppCompatActivity() {
 
 
         val recordButton = findViewById<Button>(R.id.recordButton)
+        val playButton = findViewById<Button>(R.id.playButton)
+        val stopRecordButton = findViewById<Button>(R.id.stopRecordButton)
+
+
         textView = findViewById(R.id.textView)
         recordButton.setOnClickListener {
-            if (isRecording) {
-                stopRecording()
+
+            if (checkPermissions()) {
+                startRecording()
             } else {
-                if (checkPermissions()) {
-                    startRecording()
-                } else {
-                    requestPermissions()
-                }
+                requestPermissions()
             }
+
+        }
+
+        stopRecordButton.setOnClickListener {
+            stopRecording()
+        }
+
+        playButton.setOnClickListener {
+            playRecording()
         }
     }
 
@@ -113,5 +128,34 @@ class AudioRecorderActivity : AppCompatActivity() {
         }
     }
 
+    private fun playRecording() {
+        mediaPlayer = MediaPlayer().apply {
+            try {
+                setDataSource(getOutputFile().absolutePath)
+                prepare()
+                start()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    /*override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startRecording()
+            }
+        }
+    }*/
 }
